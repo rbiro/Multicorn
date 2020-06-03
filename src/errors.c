@@ -43,10 +43,21 @@ reportException(PyObject *pErrType, PyObject *pErrValue, PyObject *pErrTraceback
 			   *errTraceback = "";
 	PyObject   *traceback_list;
 	PyObject   *pTemp;
-	PyObject   *tracebackModule = PyImport_ImportModule("traceback");
-	PyObject   *format_exception = PyObject_GetAttrString(tracebackModule, "format_exception");
+	/* tracebackModule is now global.  Could make format_exception
+	   global as well. */
+	PyObject   *format_exception = NULL;
 	PyObject   *newline = PyString_FromString("\n");
 	int			severity;
+
+	/* If traceback failed to load, We need to try to say why, and
+	   not just dump core. */
+	if ( tracebackModule != NULL) 
+	{
+		format_exception = PyObject_GetAttrString(tracebackModule,
+							  "format_exception");
+	} else {
+		pErrTraceback = NULL;
+	}
 
 	PyErr_NormalizeException(&pErrType, &pErrValue, &pErrTraceback);
 	pTemp = PyObject_GetAttrString(pErrType, "__name__");
@@ -71,14 +82,16 @@ reportException(PyObject *pErrType, PyObject *pErrValue, PyObject *pErrTraceback
 	if (errstart(severity, __FILE__, __LINE__, PG_FUNCNAME_MACRO, TEXTDOMAIN))
 	{
 		if (errstart(severity, __FILE__, __LINE__, PG_FUNCNAME_MACRO, TEXTDOMAIN))
-			errmsg("Error in python: %s", errName);
+			errmsg("Multicorn: Error in python: %s", errName);
 		errdetail("%s", errValue);
 		errdetail_log("%s", errTraceback);
 	}
 	Py_DECREF(pErrType);
 	Py_DECREF(pErrValue);
-	Py_DECREF(format_exception);
-	Py_DECREF(tracebackModule);
+	if (format_exception != NULL) 
+	{
+		Py_DECREF(format_exception);
+	}
 	Py_DECREF(newline);
 	Py_DECREF(pTemp);
 	errfinish(0);

@@ -209,6 +209,11 @@ UserMapping *multicorn_GetUserMapping(Oid userid, Oid serverid);
 /* Hash table mapping oid to fdw instances */
 extern PGDLLIMPORT HTAB *InstancesHash;
 
+/* link to traceback module for error handling.  Need to grab
+   it early it case it's an OOM error. */
+extern PyObject   *tracebackModule;
+
+
 
 /* query.c */
 void extractRestrictions(Relids base_relids,

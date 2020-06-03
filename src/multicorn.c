@@ -116,6 +116,10 @@ HTAB	   *InstancesHash;
 
 PGFunction multicorn_plpython_inline_handler = NULL;
 
+/* We need to grab a copy of this right away
+   so we can handle OOM errors */
+PyObject   *tracebackModule = NULL;
+
 void
 multicorn_init()
 {
@@ -127,6 +131,7 @@ multicorn_init()
 	static char *plpython_module = "plpython2";
 	static char *inline_function_name = "plpython_inline_handler";
 #endif
+
 	if (inited == true)
 	{
 		return;
@@ -149,6 +154,10 @@ multicorn_init()
 		Py_Initialize();
 	}
 	PG_END_TRY();
+
+	/* load traceback now so oom problems are not quite as bad. */
+	tracebackModule = PyImport_ImportModule("traceback");	
+	errorCheck();
 }
 
 
@@ -369,6 +378,11 @@ _PG_init()
 void
 _PG_fini()
 {
+	if (tracebackModule != NULL)
+	{
+		Py_DECREF(tracebackModule);
+	}
+		
 	Py_Finalize();
 }
 
