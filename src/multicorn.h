@@ -61,8 +61,6 @@ typedef struct CacheEntry
 	List	   *options;
 	List	   *columns;
 	int			xact_depth;
-	/* Keep the "options" and "columns" in a specific context to avoid leaks. */
-	MemoryContext cacheContext;
 }	CacheEntry;
 
 

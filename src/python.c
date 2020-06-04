@@ -550,6 +550,21 @@ compareColumns(List *columns1, List *columns2)
 }
 
 
+static void
+contextDestructor(PyObject *po)
+{
+	MemoryContext mc = (MemoryContext)PyCapsule_GetPointer(po, NULL);
+	ereport(WARNING,
+		(errmsg("Deleteing Context")));
+	MemoryContextDelete(mc);
+}
+
+static PyObject *
+wrapContext(MemoryContext mc)
+{
+	return PyCapsule_New(mc, NULL, contextDestructor);
+}
+
 CacheEntry *
 getCacheEntry(Oid foreigntableid)
 {
@@ -584,7 +599,6 @@ getCacheEntry(Oid foreigntableid)
 	{
 		entry->options = NULL;
 		entry->columns = NULL;
-		entry->cacheContext = NULL;
 		entry->xact_depth = 0;
 		needInitialization = true;
 	}
@@ -617,7 +631,8 @@ getCacheEntry(Oid foreigntableid)
 		PyObject   *p_options = optionsListToPyDict(options),
 				   *p_class = getClass(PyDict_GetItemString(p_options,
 															"wrapper")),
-				   *p_instance;
+ 	                           *p_instance,
+ 	                           *p_tempContext = NULL;
 
 		entry->value = NULL;
 		getColumnsFromTable(desc, &p_columns, &columns);
@@ -625,15 +640,9 @@ getCacheEntry(Oid foreigntableid)
 		p_instance = PyObject_CallFunction(p_class, "(O,O)", p_options,
 										   p_columns);
 		errorCheck();
-		/* Cleanup the old context, containing the old columns and options */
-		/* values */
-		if (entry->cacheContext != NULL)
-		{
-			MemoryContextDelete(entry->cacheContext);
-		}
+
 		/* Promote this tempcontext. */
 		MemoryContextSetParent(tempContext, CacheMemoryContext);
-		entry->cacheContext = tempContext;
 		entry->options = options;
 		entry->columns = columns;
 		entry->xact_depth = 0;
@@ -642,6 +651,19 @@ getCacheEntry(Oid foreigntableid)
 		Py_DECREF(p_columns);
 		errorCheck();
 		entry->value = p_instance;
+		
+		/* Save the memory context in the object,
+		 * so it's not destroyed until the object is.
+		 */
+		p_tempContext = wrapContext(tempContext);
+		if (PyObject_SetAttrString(p_instance,
+					   "_postgres_memory_context",
+					   p_tempContext) < 0)
+		{
+			errorCheck();
+		}
+		Py_DECREF(p_tempContext);
+
 		MemoryContextSwitchTo(oldContext);
 	}
 	else
