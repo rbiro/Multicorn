@@ -602,7 +602,6 @@ getCacheEntry(Oid foreigntableid)
 		entry->xact_depth = 0;
 		needInitialization = true;
 	}
-#if 0
 	else
 	{
 		/* Even if found, we have to check several things */
@@ -627,7 +626,6 @@ getCacheEntry(Oid foreigntableid)
 			}
 		}
 	}
-#endif
 	if (needInitialization)
 	{
 		PyObject   *p_options = optionsListToPyDict(options),
