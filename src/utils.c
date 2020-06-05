@@ -171,13 +171,6 @@ _plpy_trampoline(PyObject *self, PyObject *args)
 	TrampolineData *td = multicorn_trampoline_data;
 	MemoryContext old_context;
 
-	/* We don't want any args, so ignore them. */
-	if (args != NULL)
-	{
-	  Py_DECREF(args);
-	  args = NULL;
-	}
-	
 	/* If we are re-entered, we may need to use
 	 * another trampoline for this same process.
 	 * So clear this to make sure the error
@@ -185,10 +178,17 @@ _plpy_trampoline(PyObject *self, PyObject *args)
 	 * doesn't complain.
 	*/
 	multicorn_trampoline_data = NULL;
+	
+	/* We don't want any args, so ignore them. */
+	if (args != NULL)
+	{
+	  Py_DECREF(args);
+	  args = NULL;
+	}
 
 	/* Make sure we are in the same
 	 * memory context as when trampoline
-	 *  was called.
+	 * was called.
 	 */
 
 	old_context = MemoryContextSwitchTo(td->target_context);
@@ -237,7 +237,7 @@ static PyMethodDef UtilsMethods[] = {
 	{"_log_to_postgres", (PyCFunction) log_to_postgres, METH_VARARGS | METH_KEYWORDS, "Log to postresql client"},
 	{"check_interrupts", (PyCFunction) py_check_interrupts, METH_VARARGS | METH_KEYWORDS, "Gives control back to PostgreSQL"},
 	{"_plpy_trampoline", (PyCFunction) _plpy_trampoline, METH_NOARGS,
-	 "Internal use only, call the trampline function."},
+	 "Internal use only, call the trampoline function."},
 	{"_getInstanceByOid", (PyCFunction) _getInstanceByOid, METH_VARARGS,
 	 "Get the multicorn FDW instance by the table oid."},
 	{NULL, NULL, 0, NULL}
