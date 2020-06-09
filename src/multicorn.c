@@ -958,6 +958,20 @@ multicornEndForeignScan(ForeignScanState *node)
 	Py_DECREF(state->fdw_instance);
 	Py_XDECREF(state->p_iterator);
 	state->p_iterator = NULL;
+
+
+	/* Free this up so that
+	 * Valgrind can find issues
+	 * if we try to use it again 
+	 * later. 
+	 */
+	pfree(state->values);
+	pfree(state->nulls);
+	pfree(state->cinfos);
+
+	state->values = NULL;
+	state->nulls = NULL;
+	state->cinfos = NULL;
 }
 
 
