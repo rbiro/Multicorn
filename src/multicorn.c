@@ -431,7 +431,9 @@ multicorn_validator_real(PG_FUNCTION_ARGS)
 	char	   *className = NULL;
 	ListCell   *cell;
 	PyObject   *p_class;
-
+	
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
+	
 	foreach(cell, options_list)
 	{
 		DefElem    *def = (DefElem *) lfirst(cell);
@@ -500,7 +502,9 @@ multicornGetForeignRelSizeReal(PlannerInfo *root,
 	ListCell   *lc;
 	bool		needWholeRow = false;
 	TupleDesc	desc;
-
+	
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
+	
 	baserel->fdw_private = planstate;
 	planstate->fdw_instance = getInstance(foreigntableid);
 	planstate->foreigntableid = foreigntableid;
@@ -575,6 +579,8 @@ multicornGetForeignRelSizeReal(PlannerInfo *root,
 static void
 multicornGetForeignRelSize(PlannerInfo *root, RelOptInfo *baserel,  Oid foreigntableid)
 {
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
+	
 	multicorn_init();
 	if (multicorn_plpython_inline_handler != NULL) {
 		TrampolineData td;
@@ -615,7 +621,9 @@ multicornGetForeignPathsReal(PlannerInfo *root,
 	/* Extract a friendly version of the pathkeys. */
 	List	   *possiblePaths = pathKeys(planstate);
 
-	/* Try to find parameterized paths */
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
+
+        /* Try to find parameterized paths */
 	pathes = findPaths(root, baserel, possiblePaths, planstate->startupCost,
 			planstate, apply_pathkeys, deparsed_pathkeys);
 
@@ -685,6 +693,7 @@ multicornGetForeignPathsReal(PlannerInfo *root,
 static void
 multicornGetForeignPaths(PlannerInfo *root, RelOptInfo *baserel, Oid foreigntableid)
 {
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
 	multicorn_init();
 	if (multicorn_plpython_inline_handler != NULL) {
 		TrampolineData td;
@@ -726,6 +735,9 @@ multicornGetForeignPlan(PlannerInfo *root,
 	Index		scan_relid = baserel->relid;
 	MulticornPlanState *planstate = (MulticornPlanState *) baserel->fdw_private;
 	ListCell   *lc;
+	
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
+	
 #if PG_VERSION_NUM >= 90600
 	best_path->path.pathtarget->width = planstate->width;
 #endif
@@ -766,6 +778,9 @@ multicornExplainForeignScanReal(ForeignScanState *node, ExplainState *es)
 	PyObject *p_iterable = execute(node, es),
 			 *p_item,
 			 *p_str;
+	
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
+	
 	Py_INCREF(p_iterable);
 	while((p_item = PyIter_Next(p_iterable))){
 		p_str = PyObject_Str(p_item);
@@ -813,6 +828,8 @@ multicornBeginForeignScanReal(ForeignScanState *node, int eflags)
 	MulticornExecState *execstate;
 	TupleDesc	tupdesc = RelationGetDescr(node->ss.ss_currentRelation);
 	ListCell   *lc;
+
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
 
 	execstate = initializeExecState(fscan->fdw_private);
 	execstate->ftable_oid = node->ss.ss_currentRelation->rd_id;
@@ -867,6 +884,8 @@ multicornIterateForeignScanReal(ForeignScanState *node)
 	MulticornExecState *execstate = node->fdw_state;
 	PyObject   *p_value;
 
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
+	
 	assert (execstate->ftable_oid == node->ss.ss_currentRelation->rd_id);
 	
 	if (execstate->p_iterator == NULL)
@@ -933,7 +952,7 @@ static void
 multicornReScanForeignScan(ForeignScanState *node)
 {
 	MulticornExecState *state = node->fdw_state;
-	ereport(INFO, (errmsg("XXXXX %p: rescan", node)));
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
 
 	if (state->p_iterator)
 	{
@@ -999,6 +1018,8 @@ multicornAddForeignUpdateTargetsReal(Query *parsetree,
 	int			i;
 	ListCell   *cell;
 
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
+	
 	foreach(cell, parsetree->returningList)
 	{
 		returningTle = lfirst(cell);
@@ -1044,6 +1065,9 @@ multicornAddForeignUpdateTargets(Query *parsetree,
 				 RangeTblEntry *target_rte,
 				 Relation target_relation)
 {
+
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
+	
 	multicorn_init();
 	if (multicorn_plpython_inline_handler != NULL) {
 		TrampolineData td;
@@ -1073,6 +1097,7 @@ multicornPlanForeignModify(PlannerInfo *root,
 						   Index resultRelation,
 						   int subplan_index)
 {
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
 	return NULL;
 }
 
@@ -1095,6 +1120,8 @@ multicornBeginForeignModifyReal(ModifyTableState *mtstate,
 	Plan	   *subplan = ps->plan;
 	MemoryContext oldcontext;
 	int			i;
+
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
 
 	modstate->cinfos = palloc0(sizeof(ConversionInfo *) *
 							   desc->natts);
@@ -1137,6 +1164,9 @@ multicornBeginForeignModify(ModifyTableState *mtstate,
 			    int subplan_index,
 			    int eflags)
 {
+	
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
+
 	multicorn_init();
 	if (multicorn_plpython_inline_handler != NULL) {
 		TrampolineData td;
@@ -1164,6 +1194,7 @@ static TupleTableSlot *							\
 funcname(EState *estate, ResultRelInfo *resultRelInfo,			\
 	 TupleTableSlot *slot, TupleTableSlot *planSlot)		\
 {									\
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__))); \
 	multicorn_init();						\
 	if (multicorn_plpython_inline_handler != NULL)			\
 	{								\
@@ -1199,6 +1230,8 @@ multicornExecForeignInsertReal(EState *estate, ResultRelInfo *resultRelInfo,
 	PyObject   *values = tupleTableSlotToPyObject(slot, modstate->cinfos);
 	PyObject   *p_new_value = PyObject_CallMethod(fdw_instance, "insert", "(O)", values);
 
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
+	
 	errorCheck();
 	if (p_new_value && p_new_value != Py_None)
 	{
@@ -1231,6 +1264,8 @@ multicornExecForeignDeleteReal(EState *estate, ResultRelInfo *resultRelInfo,
 	bool		is_null;
 	ConversionInfo *cinfo = modstate->rowidCinfo;
 	Datum		value = ExecGetJunkAttribute(planSlot, modstate->rowidAttno, &is_null);
+
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
 
 	p_row_id = datumToPython(value, cinfo->atttypoid, cinfo);
 	p_new_value = PyObject_CallMethod(fdw_instance, "delete", "(O)", p_row_id);
@@ -1268,6 +1303,8 @@ multicornExecForeignUpdateReal(EState *estate, ResultRelInfo *resultRelInfo,
 	bool		is_null;
 	ConversionInfo *cinfo = modstate->rowidCinfo;
 	Datum		value = ExecGetJunkAttribute(planSlot, modstate->rowidAttno, &is_null);
+
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
 
 	p_row_id = datumToPython(value, cinfo->atttypoid, cinfo);
 	p_new_value = PyObject_CallMethod(fdw_instance, "update", "(O,O)", p_row_id,
@@ -1315,7 +1352,9 @@ multicorn_subxact_callback(SubXactEvent event, SubTransactionId mySubid,
 	HASH_SEQ_STATUS status;
 	CacheEntry *entry;
 
-	/* Nothing to do after commit or subtransaction start. */
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
+
+        /* Nothing to do after commit or subtransaction start. */
 	if (event == SUBXACT_EVENT_COMMIT_SUB || event == SUBXACT_EVENT_START_SUB)
 		return;
 
@@ -1357,6 +1396,8 @@ multicorn_xact_callback(XactEvent event, void *arg)
 {
 	HASH_SEQ_STATUS status;
 	CacheEntry *entry;
+
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
 
 	hash_seq_init(&status, InstancesHash);
 	while ((entry = (CacheEntry *) hash_seq_search(&status)) != NULL)
@@ -1414,6 +1455,8 @@ multicornImportForeignSchemaReal(ImportForeignSchemaStmt * stmt,
 			   *p_iter,
 			   *p_item;
 	ListCell   *lc;
+
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
 
 	f_server = GetForeignServer(serverOid);
 	foreach(lc, f_server->options)
@@ -1531,7 +1574,9 @@ void *
 serializePlanState(MulticornPlanState * state)
 {
 	List	   *result = NULL;
-
+	
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
+	
 	result = lappend(result, makeConst(INT4OID,
 						  -1, InvalidOid, 4, Int32GetDatum(state->numattrs), false, true));
 	result = lappend(result, makeConst(INT4OID,
@@ -1555,6 +1600,8 @@ initializeExecState(void *internalstate)
 	AttrNumber	attnum = ((Const *) linitial(values))->constvalue;
 	Oid			foreigntableid = ((Const *) lsecond(values))->constvalue;
 	List		*pathkeys;
+
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));	
 
 	/* Those list must be copied, because their memory context can become */
 	/* invalid during the execution (in particular with the cursor interface) */
