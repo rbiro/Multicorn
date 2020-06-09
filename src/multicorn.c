@@ -815,6 +815,7 @@ multicornBeginForeignScanReal(ForeignScanState *node, int eflags)
 	ListCell   *lc;
 
 	execstate = initializeExecState(fscan->fdw_private);
+	execstate->ftable_oid = node->ss.ss_currentRelation->rd_id;
 	execstate->values = palloc(sizeof(Datum) * tupdesc->natts);
 	execstate->nulls = palloc(sizeof(bool) * tupdesc->natts);
 	execstate->qual_list = NULL;
@@ -866,6 +867,8 @@ multicornIterateForeignScanReal(ForeignScanState *node)
 	MulticornExecState *execstate = node->fdw_state;
 	PyObject   *p_value;
 
+	assert (execstate->ftable_oid == node->ss.ss_currentRelation->rd_id);
+	
 	if (execstate->p_iterator == NULL)
 	{
 		execute(node, NULL);
@@ -930,6 +933,7 @@ static void
 multicornReScanForeignScan(ForeignScanState *node)
 {
 	MulticornExecState *state = node->fdw_state;
+	ereport(INFO, (errmsg("XXXXX %p: rescan", node)));
 
 	if (state->p_iterator)
 	{
