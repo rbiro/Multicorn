@@ -973,6 +973,8 @@ static void
 multicornEndForeignScan(ForeignScanState *node)
 {
 	MulticornExecState *state = node->fdw_state;
+	ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
+	
 	multicornCallInstanceByOid(state->ftable_oid,
 				   NULL,
 				   "end_modify");
