@@ -1236,10 +1236,8 @@ pythonDictToTuple(PyObject *p_value,
 
 		if (cinfos[cinfo_idx] == NULL)
 		{
-			values[i] = (Datum) NULL;
-			nulls[i] = true;
-			ereport(INFO, (errmsg("MULTICORN FILE=%s LINE=%d FUNC=%s",  __FILE__, __LINE__,__PRETTY_FUNCTION__)));
-			ereport(INFO, (errmsg("XXXXX Warning cinfos empty")));
+			/*values[i] = (Datum) NULL;
+			  nulls[i] = true; */
 			continue;
 		}
 		key = cinfos[cinfo_idx]->attrname;
