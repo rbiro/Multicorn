@@ -1236,8 +1236,8 @@ pythonDictToTuple(PyObject *p_value,
 
 		if (cinfos[cinfo_idx] == NULL)
 		{
-			/*values[i] = (Datum) NULL;
-			  nulls[i] = true; */
+			values[i] = (Datum) NULL;
+			nulls[i] = true; 
 			continue;
 		}
 		key = cinfos[cinfo_idx]->attrname;
